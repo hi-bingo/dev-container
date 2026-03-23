@@ -1,0 +1,19 @@
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: dev-container:local
+    stdin_open: true
+    tty: true
+    working_dir: /workspace
+    env_file:
+      - .env
+    environment:
+      HOME: /home/dev
+    volumes:
+      - .:/workspace
+      - ~/.codex:/home/dev/.codex
+      - ~/.claude:/home/dev/.claude
+      - ~/.cc-connect:/home/dev/.cc-connect
+      - ~/.ssh:/home/dev/.ssh:ro
