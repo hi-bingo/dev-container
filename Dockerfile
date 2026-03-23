@@ -11,10 +11,11 @@ ARG USER_GID=1000
 ARG NODE_VERSION=22.18.0
 ARG CODEX_NPM_PACKAGE=@openai/codex@latest
 ARG CLAUDE_NPM_PACKAGE=@anthropic-ai/claude-code@latest
+ARG CC_CONNECT_NPM_PACKAGE=cc-connect@latest
 ARG IMAGE_CREATED=unknown
 ARG IMAGE_REVISION=unknown
 ARG IMAGE_SOURCE=https://github.com/unknown/unknown
-ARG IMAGE_DESCRIPTION=Personal development container with Python, Node.js, Codex, and Claude Code.
+ARG IMAGE_DESCRIPTION=Personal development container with Python, Node.js, Codex, Claude Code, and cc-connect.
 
 LABEL org.opencontainers.image.created="${IMAGE_CREATED}" \
       org.opencontainers.image.revision="${IMAGE_REVISION}" \
@@ -83,8 +84,12 @@ RUN npm install -g "${CODEX_NPM_PACKAGE}"
 
 RUN npm install -g "${CLAUDE_NPM_PACKAGE}"
 
+RUN npm install -g "${CC_CONNECT_NPM_PACKAGE}"
+
 USER ${USERNAME}
 WORKDIR /workspace
+
+COPY --chown=${USERNAME}:${USERNAME} scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 ENV HOME=/home/${USERNAME} \
     NPM_CONFIG_PREFIX=/home/${USERNAME}/.npm-global \
@@ -104,7 +109,8 @@ RUN node --version \
     && python --version \
     && pip --version \
     && codex --version \
-    && claude --version
+    && claude --version \
+    && cc-connect --version
 
-ENTRYPOINT ["/usr/bin/tini", "--"]
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/docker-entrypoint.sh"]
 CMD ["zsh"]

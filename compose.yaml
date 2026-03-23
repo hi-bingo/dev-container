@@ -13,6 +13,4 @@ services:
       HOME: /home/dev
     volumes:
       - .:/workspace
-      - ~/.codex:/home/dev/.codex
-      - ~/.claude:/home/dev/.claude
       - ~/.ssh:/home/dev/.ssh:ro

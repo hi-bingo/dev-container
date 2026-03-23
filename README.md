@@ -8,6 +8,7 @@
 - `uv`, `pipx`
 - `codex`
 - `claude`
+- `cc-connect`
 - 常用终端工具：`git`, `git-lfs`, `ripgrep`, `fd`, `jq`, `zsh`, `vim`
 
 ## 仓库建议结构
@@ -49,13 +50,24 @@ docker compose run --rm dev
 
 ## Claude / Codex 认证
 
-- `codex` 首次运行时可走 ChatGPT 登录或 `OPENAI_API_KEY`
-- `claude` 首次运行时需要 Claude Code 账户登录，或使用 Anthropic / Bedrock / Vertex 等 provider
-- `compose.yaml` 默认会挂载 `~/.codex`、`~/.claude`、`~/.ssh`，这样本机登录态可以复用到容器内
+- `codex` 通过 `.env` 提供 `OPENAI_API_KEY`，容器启动时会把 `CODEX_OPENAI_BASE_URL` 和 `CODEX_MODEL` 写入 `~/.codex/config.toml`
+- `claude` 通过 `.env` 提供 `ANTHROPIC_BASE_URL` 与 `ANTHROPIC_API_KEY` 或 `ANTHROPIC_AUTH_TOKEN`
+- `compose.yaml` 只保留 `~/.ssh` 挂载，agent 配置不再依赖宿主机的 `~/.codex` 或 `~/.claude`
+
+中转站示例：
+
+```env
+OPENAI_API_KEY=sk-...
+CODEX_OPENAI_BASE_URL=https://your-openai-relay.example.com/v1
+CODEX_MODEL=gpt-5-codex
+
+ANTHROPIC_BASE_URL=https://your-anthropic-relay.example.com
+ANTHROPIC_AUTH_TOKEN=sk-litellm-...
+```
 
 ## 后续扩展
 
-- `cc-connect` 目前未预装，等主线镜像稳定后再单独加回去更稳妥
+- `cc-connect` 已预装；你后续只需要在容器内或项目内补它自己的平台配置
 
 ## GitHub 配置
 
