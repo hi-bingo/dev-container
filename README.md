@@ -8,7 +8,6 @@
 - `uv`, `pipx`
 - `codex`
 - `claude`
-- `cc-connect`
 - 常用终端工具：`git`, `git-lfs`, `ripgrep`, `fd`, `jq`, `zsh`, `vim`
 
 ## 仓库建议结构
@@ -52,8 +51,11 @@ docker compose run --rm dev
 
 - `codex` 首次运行时可走 ChatGPT 登录或 `OPENAI_API_KEY`
 - `claude` 首次运行时需要 Claude Code 账户登录，或使用 Anthropic / Bedrock / Vertex 等 provider
-- `cc-connect` 需要你自己在 `~/.cc-connect/config.toml` 中配置目标平台与 agent
-- `compose.yaml` 默认会挂载 `~/.codex`、`~/.claude`、`~/.cc-connect`、`~/.ssh`，这样本机登录态可以复用到容器内
+- `compose.yaml` 默认会挂载 `~/.codex`、`~/.claude`、`~/.ssh`，这样本机登录态可以复用到容器内
+
+## 后续扩展
+
+- `cc-connect` 目前未预装，等主线镜像稳定后再单独加回去更稳妥
 
 ## GitHub 配置
 

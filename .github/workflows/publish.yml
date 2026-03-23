@@ -63,8 +63,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
-            CLAUDE_CHANNEL=stable
             IMAGE_CREATED=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
             IMAGE_REVISION=${{ github.sha }}
             IMAGE_SOURCE=${{ github.server_url }}/${{ github.repository }}
-            IMAGE_DESCRIPTION=Personal development container with Python, Node.js, Codex, Claude Code, and cc-connect.
+            IMAGE_DESCRIPTION=Personal development container with Python, Node.js, Codex, and Claude Code.

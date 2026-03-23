@@ -15,5 +15,4 @@ services:
       - .:/workspace
       - ~/.codex:/home/dev/.codex
       - ~/.claude:/home/dev/.claude
-      - ~/.cc-connect:/home/dev/.cc-connect
       - ~/.ssh:/home/dev/.ssh:ro
