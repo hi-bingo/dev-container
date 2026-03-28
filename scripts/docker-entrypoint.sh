@@ -4,6 +4,10 @@ set -euo pipefail
 
 mkdir -p "${HOME}/.codex" "${HOME}/.claude"
 
+if [[ ! -f "${HOME}/.zshrc" ]]; then
+  cp /usr/local/share/dev-container/zshrc "${HOME}/.zshrc"
+fi
+
 if [[ -n "${CODEX_OPENAI_BASE_URL:-}" || -n "${CODEX_MODEL:-}" ]]; then
   {
     echo 'model_provider = "openai"'

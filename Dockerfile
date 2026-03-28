@@ -34,6 +34,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         bash \
         bash-completion \
+        bubblewrap \
         build-essential \
         ca-certificates \
         curl \
@@ -127,6 +128,7 @@ RUN set -eux; \
     chown -R "${USERNAME}:${user_group}" /workspace "/home/${USERNAME}"
 
 COPY scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+COPY scripts/zshrc /usr/local/share/dev-container/zshrc
 
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 

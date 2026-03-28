@@ -1,0 +1,21 @@
+autoload -Uz compinit
+compinit -d "${HOME}/.zcompdump"
+
+setopt auto_cd
+setopt interactive_comments
+setopt hist_ignore_dups
+setopt hist_reduce_blanks
+setopt share_history
+
+HISTFILE="${HOME}/.zsh_history"
+HISTSIZE=5000
+SAVEHIST=5000
+
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+
+autoload -Uz colors
+colors
+
+PROMPT='%F{cyan}%n@%m%f:%F{yellow}%~%f %# '
