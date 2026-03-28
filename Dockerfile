@@ -104,12 +104,27 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/b
 RUN git lfs install --system \
     && npm install -g typescript tsx "${CODEX_NPM_PACKAGE}" "${CLAUDE_NPM_PACKAGE}"
 
-RUN groupadd --gid "${USER_GID}" "${USERNAME}" \
-    && useradd --uid "${USER_UID}" --gid "${USER_GID}" --create-home --shell /bin/zsh "${USERNAME}" \
-    && echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/${USERNAME} \
-    && chmod 0440 /etc/sudoers.d/${USERNAME} \
-    && mkdir -p /workspace /home/${USERNAME}/.npm-global /home/${USERNAME}/.claude /home/${USERNAME}/.local/bin \
-    && chown -R "${USERNAME}:${USERNAME}" /workspace /home/${USERNAME}
+RUN set -eux; \
+    if getent group "${USERNAME}" >/dev/null; then \
+        user_group="${USERNAME}"; \
+    elif getent group "${USER_GID}" >/dev/null; then \
+        user_group="$(getent group "${USER_GID}" | cut -d: -f1)"; \
+    else \
+        groupadd --gid "${USER_GID}" "${USERNAME}"; \
+        user_group="${USERNAME}"; \
+    fi; \
+    if id -u "${USERNAME}" >/dev/null 2>&1; then \
+        usermod --uid "${USER_UID}" --gid "${user_group}" --shell /bin/zsh "${USERNAME}"; \
+    elif getent passwd "${USER_UID}" >/dev/null; then \
+        existing_user="$(getent passwd "${USER_UID}" | cut -d: -f1)"; \
+        usermod --login "${USERNAME}" --home "/home/${USERNAME}" --move-home --gid "${user_group}" --shell /bin/zsh "${existing_user}"; \
+    else \
+        useradd --uid "${USER_UID}" --gid "${user_group}" --create-home --shell /bin/zsh "${USERNAME}"; \
+    fi; \
+    echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/${USERNAME}; \
+    chmod 0440 /etc/sudoers.d/${USERNAME}; \
+    mkdir -p /workspace "/home/${USERNAME}/.npm-global" "/home/${USERNAME}/.claude" "/home/${USERNAME}/.local/bin"; \
+    chown -R "${USERNAME}:${user_group}" /workspace "/home/${USERNAME}"
 
 COPY scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
