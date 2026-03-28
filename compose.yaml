@@ -1,9 +1,7 @@
 services:
   dev:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: dev-container:local
+    image: ${DEV_CONTAINER_IMAGE:-ghcr.io/hi-bingo/dev-container:latest}
+    pull_policy: always
     stdin_open: true
     tty: true
     working_dir: /workspace
@@ -12,5 +10,8 @@ services:
     environment:
       HOME: /home/dev
     volumes:
-      - .:/workspace
-      - ~/.ssh:/home/dev/.ssh:ro
+      - ${WORKSPACE_DIR:-.}:/workspace
+      - ${HOME}/.ssh:/home/dev/.ssh:ro
+      - ${HOME}/.gitconfig:/home/dev/.gitconfig:ro
+      - ${HOME}/.codex:/home/dev/.codex
+      - ${HOME}/.claude:/home/dev/.claude

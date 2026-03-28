@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-FROM python:3.12-slim-bookworm
+FROM ubuntu:24.04
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -9,13 +9,13 @@ ARG USERNAME=dev
 ARG USER_UID=1000
 ARG USER_GID=1000
 ARG NODE_VERSION=22.18.0
+ARG BUN_VERSION=1.1.38
 ARG CODEX_NPM_PACKAGE=@openai/codex@latest
 ARG CLAUDE_NPM_PACKAGE=@anthropic-ai/claude-code@latest
-ARG CC_CONNECT_NPM_PACKAGE=cc-connect@latest
 ARG IMAGE_CREATED=unknown
 ARG IMAGE_REVISION=unknown
 ARG IMAGE_SOURCE=https://github.com/unknown/unknown
-ARG IMAGE_DESCRIPTION=Personal development container with Python, Node.js, Codex, Claude Code, and cc-connect.
+ARG IMAGE_DESCRIPTION=Ubuntu 24.04 development container with Python, Node.js, Bun, Codex, and Claude Code.
 
 LABEL org.opencontainers.image.created="${IMAGE_CREATED}" \
       org.opencontainers.image.revision="${IMAGE_REVISION}" \
@@ -33,26 +33,47 @@ ENV DEBIAN_FRONTEND=noninteractive \
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         bash \
+        bash-completion \
         build-essential \
         ca-certificates \
         curl \
+        dnsutils \
         fd-find \
         git \
         git-lfs \
+        htop \
+        iproute2 \
         jq \
         less \
+        nano \
+        net-tools \
         openssh-client \
         pkg-config \
         procps \
+        python-is-python3 \
+        python3 \
+        python3-dev \
+        python3-pip \
+        python3-venv \
+        pipx \
         ripgrep \
+        rsync \
+        shellcheck \
+        sqlite3 \
         sudo \
         tini \
+        tmux \
+        tree \
         unzip \
         vim \
         wget \
         xz-utils \
+        zip \
         zsh \
     && rm -rf /var/lib/apt/lists/*
+
+RUN ln -sf /usr/bin/fdfind /usr/local/bin/fd \
+    && ln -sf /usr/bin/pip3 /usr/local/bin/pip
 
 RUN arch="${TARGETARCH:-$(dpkg --print-architecture)}" \
     && case "${arch}" in \
@@ -66,30 +87,36 @@ RUN arch="${TARGETARCH:-$(dpkg --print-architecture)}" \
     && ln -sf /usr/local/bin/node /usr/local/bin/nodejs \
     && corepack enable
 
+RUN arch="${TARGETARCH:-$(dpkg --print-architecture)}" \
+    && case "${arch}" in \
+        amd64) bun_arch="x64" ;; \
+        arm64) bun_arch="aarch64" ;; \
+        *) echo "Unsupported TARGETARCH: ${arch}" >&2; exit 1 ;; \
+    esac \
+    && curl -fsSL "https://github.com/oven-sh/bun/releases/download/bun-v${BUN_VERSION}/bun-linux-${bun_arch}.zip" -o /tmp/bun.zip \
+    && unzip -q /tmp/bun.zip -d /opt/bun \
+    && rm -f /tmp/bun.zip \
+    && ln -sf "/opt/bun/bun-linux-${bun_arch}/bun" /usr/local/bin/bun \
+    && ln -sf /usr/local/bin/bun /usr/local/bin/bunx
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
+
+RUN git lfs install --system \
+    && npm install -g typescript tsx "${CODEX_NPM_PACKAGE}" "${CLAUDE_NPM_PACKAGE}"
+
 RUN groupadd --gid "${USER_GID}" "${USERNAME}" \
     && useradd --uid "${USER_UID}" --gid "${USER_GID}" --create-home --shell /bin/zsh "${USERNAME}" \
     && echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/${USERNAME} \
     && chmod 0440 /etc/sudoers.d/${USERNAME} \
-    && mkdir -p /workspace /home/${USERNAME}/.npm-global /home/${USERNAME}/.claude \
+    && mkdir -p /workspace /home/${USERNAME}/.npm-global /home/${USERNAME}/.claude /home/${USERNAME}/.local/bin \
     && chown -R "${USERNAME}:${USERNAME}" /workspace /home/${USERNAME}
 
-RUN git lfs install --system \
-    && ln -sf /usr/bin/fdfind /usr/local/bin/fd
+COPY scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
-RUN python -m pip install --no-cache-dir --upgrade pip pipx uv
-
-RUN npm install -g typescript tsx
-
-RUN npm install -g "${CODEX_NPM_PACKAGE}"
-
-RUN npm install -g "${CLAUDE_NPM_PACKAGE}"
-
-RUN npm install -g "${CC_CONNECT_NPM_PACKAGE}"
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 USER ${USERNAME}
 WORKDIR /workspace
-
-COPY --chown=${USERNAME}:${USERNAME} scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 ENV HOME=/home/${USERNAME} \
     NPM_CONFIG_PREFIX=/home/${USERNAME}/.npm-global \
@@ -106,11 +133,16 @@ RUN printf '%s\n' \
 
 RUN node --version \
     && npm --version \
+    && corepack --version \
+    && bun --version \
     && python --version \
     && pip --version \
+    && pipx --version \
+    && uv --version \
+    && tsc --version \
+    && tsx --version \
     && codex --version \
-    && claude --version \
-    && cc-connect --version
+    && claude --version
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/docker-entrypoint.sh"]
 CMD ["zsh"]
