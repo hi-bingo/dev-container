@@ -12,13 +12,17 @@ if [[ ! -w "${HOME}" ]]; then
   exit 1
 fi
 
-mkdir -p "${HOME}/.codex" "${HOME}/.claude"
+mkdir -p "${HOME}/.codex" "${HOME}/.claude" "${HOME}/.cc-connect"
 
 if [[ ! -f "${HOME}/.zshrc" ]]; then
   cp /usr/local/share/dev-container/zshrc "${HOME}/.zshrc"
 fi
 
-if [[ -n "${CODEX_OPENAI_BASE_URL:-}" || -n "${CODEX_MODEL:-}" ]]; then
+if [[ ! -f "${HOME}/.cc-connect/config.toml" && -f /usr/local/share/dev-container/config.example.toml ]]; then
+  cp /usr/local/share/dev-container/config.example.toml "${HOME}/.cc-connect/config.toml"
+fi
+
+if [[ ! -f "${HOME}/.codex/config.toml" && ( -n "${CODEX_OPENAI_BASE_URL:-}" || -n "${CODEX_MODEL:-}" ) ]]; then
   {
     echo 'model_provider = "openai"'
     if [[ -n "${CODEX_MODEL:-}" ]]; then

@@ -9,10 +9,11 @@ ARG NODE_VERSION=22.18.0
 ARG BUN_VERSION=1.1.38
 ARG CODEX_NPM_PACKAGE=@openai/codex@latest
 ARG CLAUDE_NPM_PACKAGE=@anthropic-ai/claude-code@latest
+ARG CC_CONNECT_NPM_PACKAGE=cc-connect@latest
 ARG IMAGE_CREATED=unknown
 ARG IMAGE_REVISION=unknown
 ARG IMAGE_SOURCE=https://github.com/unknown/unknown
-ARG IMAGE_DESCRIPTION=Ubuntu 24.04 development container with Python, Node.js, Bun, Codex, and Claude Code.
+ARG IMAGE_DESCRIPTION=Ubuntu 24.04 development container with Python, Node.js, Bun, Codex, Claude Code, and cc-connect.
 
 LABEL org.opencontainers.image.created="${IMAGE_CREATED}" \
       org.opencontainers.image.revision="${IMAGE_REVISION}" \
@@ -100,12 +101,18 @@ RUN arch="${TARGETARCH:-$(dpkg --print-architecture)}" \
 RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
 
 RUN git lfs install --system \
-    && npm install -g typescript tsx "${CODEX_NPM_PACKAGE}" "${CLAUDE_NPM_PACKAGE}"
+    && npm install -g \
+        typescript \
+        tsx \
+        "${CODEX_NPM_PACKAGE}" \
+        "${CLAUDE_NPM_PACKAGE}" \
+        "${CC_CONNECT_NPM_PACKAGE}"
 
-RUN mkdir -p /workspace /root/.npm-global /root/.claude /root/.local/bin
+RUN mkdir -p /workspace /root/.npm-global /root/.claude /root/.codex /root/.cc-connect /root/.local/bin
 
 COPY scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 COPY scripts/zshrc /usr/local/share/dev-container/zshrc
+COPY config.example.toml /usr/local/share/dev-container/config.example.toml
 
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
@@ -135,7 +142,8 @@ RUN node --version \
     && tsc --version \
     && tsx --version \
     && codex --version \
-    && claude --version
+    && claude --version \
+    && cc-connect --version
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/docker-entrypoint.sh"]
 CMD ["zsh"]

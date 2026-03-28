@@ -4,6 +4,7 @@ services:
     pull_policy: always
     stdin_open: true
     tty: true
+    user: root
     working_dir: /workspace
     env_file:
       - .env
