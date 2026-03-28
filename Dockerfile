@@ -5,9 +5,6 @@ FROM ubuntu:24.04
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 ARG TARGETARCH
-ARG USERNAME=dev
-ARG USER_UID=1000
-ARG USER_GID=1000
 ARG NODE_VERSION=22.18.0
 ARG BUN_VERSION=1.1.38
 ARG CODEX_NPM_PACKAGE=@openai/codex@latest
@@ -105,39 +102,18 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/b
 RUN git lfs install --system \
     && npm install -g typescript tsx "${CODEX_NPM_PACKAGE}" "${CLAUDE_NPM_PACKAGE}"
 
-RUN set -eux; \
-    if getent group "${USERNAME}" >/dev/null; then \
-        user_group="${USERNAME}"; \
-    elif getent group "${USER_GID}" >/dev/null; then \
-        user_group="$(getent group "${USER_GID}" | cut -d: -f1)"; \
-    else \
-        groupadd --gid "${USER_GID}" "${USERNAME}"; \
-        user_group="${USERNAME}"; \
-    fi; \
-    if id -u "${USERNAME}" >/dev/null 2>&1; then \
-        usermod --uid "${USER_UID}" --gid "${user_group}" --shell /bin/zsh "${USERNAME}"; \
-    elif getent passwd "${USER_UID}" >/dev/null; then \
-        existing_user="$(getent passwd "${USER_UID}" | cut -d: -f1)"; \
-        usermod --login "${USERNAME}" --home "/home/${USERNAME}" --move-home --gid "${user_group}" --shell /bin/zsh "${existing_user}"; \
-    else \
-        useradd --uid "${USER_UID}" --gid "${user_group}" --create-home --shell /bin/zsh "${USERNAME}"; \
-    fi; \
-    echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/${USERNAME}; \
-    chmod 0440 /etc/sudoers.d/${USERNAME}; \
-    mkdir -p /workspace "/home/${USERNAME}/.npm-global" "/home/${USERNAME}/.claude" "/home/${USERNAME}/.local/bin"; \
-    chown -R "${USERNAME}:${user_group}" /workspace "/home/${USERNAME}"
+RUN mkdir -p /workspace /root/.npm-global /root/.claude /root/.local/bin
 
 COPY scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 COPY scripts/zshrc /usr/local/share/dev-container/zshrc
 
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-USER ${USERNAME}
 WORKDIR /workspace
 
-ENV HOME=/home/${USERNAME} \
-    NPM_CONFIG_PREFIX=/home/${USERNAME}/.npm-global \
-    PATH=/home/${USERNAME}/.local/bin:/home/${USERNAME}/.npm-global/bin:/usr/local/bin:${PATH} \
+ENV HOME=/root \
+    NPM_CONFIG_PREFIX=/root/.npm-global \
+    PATH=/root/.local/bin:/root/.npm-global/bin:/usr/local/bin:${PATH} \
     DISABLE_AUTOUPDATER=1
 
 RUN printf '%s\n' \
@@ -146,7 +122,7 @@ RUN printf '%s\n' \
         '  "env": {' \
         '    "DISABLE_AUTOUPDATER": "1"' \
         '  }' \
-        '}' >"/home/${USERNAME}/.claude/settings.json"
+        '}' >/root/.claude/settings.json
 
 RUN node --version \
     && npm --version \

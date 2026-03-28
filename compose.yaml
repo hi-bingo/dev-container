@@ -8,8 +8,11 @@ services:
     env_file:
       - .env
     environment:
-      HOME: /home/dev
+      HOME: /root
     volumes:
       - ${WORKSPACE_DIR:-.}:/workspace
-      - ${HOME}/.ssh:/home/dev/.ssh:ro
-      - ${HOME}/.gitconfig:/home/dev/.gitconfig:ro
+      - ${HOME}/.ssh:/root/.ssh:ro
+      - ${HOME}/.gitconfig:/root/.gitconfig:ro
+      - ${HOME}/.codex:/root/.codex
+      - ${HOME}/.claude:/root/.claude
+      - ${HOME}/.cc-connect:/root/.cc-connect
