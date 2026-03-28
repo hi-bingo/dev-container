@@ -11,6 +11,5 @@ services:
       HOME: /home/dev
     volumes:
       - ${WORKSPACE_DIR:-.}:/workspace
-      - ${DEV_HOME_DIR:-./.dev-home}:/home/dev
       - ${HOME}/.ssh:/home/dev/.ssh:ro
       - ${HOME}/.gitconfig:/home/dev/.gitconfig:ro

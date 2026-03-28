@@ -67,3 +67,20 @@ jobs:
             IMAGE_REVISION=${{ github.sha }}
             IMAGE_SOURCE=${{ github.server_url }}/${{ github.repository }}
             IMAGE_DESCRIPTION=Ubuntu 24.04 development container with Python, Node.js, Bun, Codex, and Claude Code.
+
+  cleanup-ghcr:
+    if: github.event_name != 'pull_request'
+    needs: docker
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Delete old GHCR versions
+        uses: actions/delete-package-versions@v5
+        with:
+          owner: ${{ github.repository_owner }}
+          package-name: ${{ github.event.repository.name }}
+          package-type: container
+          min-versions-to-keep: 3
+          token: ${{ secrets.GITHUB_TOKEN }}

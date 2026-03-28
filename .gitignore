@@ -7,5 +7,4 @@ dist/
 node_modules/
 coverage/
 tmp/
-.dev-home/
 *.log

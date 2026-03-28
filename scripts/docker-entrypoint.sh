@@ -2,6 +2,17 @@
 
 set -euo pipefail
 
+if [[ ! -d "${HOME}" ]]; then
+  echo "Error: ${HOME} does not exist inside the container." >&2
+  exit 1
+fi
+
+if [[ ! -w "${HOME}" ]]; then
+  echo "Error: ${HOME} is not writable by the current user." >&2
+  echo "Check the host bind mount for DEV_HOME_DIR and make sure the directory exists with writable permissions." >&2
+  exit 1
+fi
+
 mkdir -p "${HOME}/.codex" "${HOME}/.claude"
 
 if [[ ! -f "${HOME}/.zshrc" ]]; then

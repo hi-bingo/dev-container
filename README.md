@@ -72,7 +72,7 @@ ghcr.io/hi-bingo/dev-container:latest
 ```bash
 DEV_CONTAINER_IMAGE=ghcr.io/hi-bingo/dev-container:v1.0.0
 WORKSPACE_DIR=.
-DEV_HOME_DIR=./.dev-home
+HOST_HOME_DIR=/Users/yourname
 ```
 
 ## Claude / Codex 认证
@@ -80,14 +80,8 @@ DEV_HOME_DIR=./.dev-home
 - `codex` 通过 `.env` 提供 `OPENAI_API_KEY`，容器启动时会把 `CODEX_OPENAI_BASE_URL` 和 `CODEX_MODEL` 写入 `~/.codex/config.toml`
 - `claude` 通过 `.env` 提供 `ANTHROPIC_BASE_URL` 与 `ANTHROPIC_API_KEY` 或 `ANTHROPIC_AUTH_TOKEN`
 - `compose.yaml` 会挂载当前工作目录到 `/workspace`
-- `compose.yaml` 会把宿主机 `${DEV_HOME_DIR}` 整体挂到容器内 `/home/dev`，用于持久化 `~/.zshrc`、`~/.codex`、`~/.claude` 等开发配置
-- `compose.yaml` 会把宿主机 `${HOME}/.ssh` 只读挂到容器内 `/home/dev/.ssh`，直接复用主机 SSH 配置与密钥
-- `compose.yaml` 会把宿主机 `${HOME}/.gitconfig` 挂到容器内 `/home/dev/.gitconfig`，直接复用主机上的 Git 用户名、邮箱和别名配置
-- 首次启动前建议先创建持久化目录：
-
-```bash
-mkdir -p .dev-home/.codex .dev-home/.claude
-```
+- `compose.yaml` 会把宿主机 `${HOST_HOME_DIR}/.ssh` 只读挂到容器内 `/home/dev/.ssh`，直接复用主机 SSH 配置与密钥
+- `compose.yaml` 会把宿主机 `${HOST_HOME_DIR}/.gitconfig` 挂到容器内 `/home/dev/.gitconfig`，直接复用主机上的 Git 用户名、邮箱和别名配置
 
 中转站示例：
 
