@@ -46,6 +46,7 @@ RUN apt-get update \
         less \
         nano \
         net-tools \
+        openssh-server \
         openssh-client \
         pkg-config \
         procps \
@@ -114,7 +115,21 @@ COPY scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 COPY scripts/zshrc /usr/local/share/dev-container/zshrc
 COPY config.example.toml /usr/local/share/dev-container/config.example.toml
 
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
+    && mkdir -p /run/sshd \
+    && printf '%s\n' \
+        'Port 22' \
+        'Protocol 2' \
+        'PermitRootLogin prohibit-password' \
+        'PasswordAuthentication no' \
+        'KbdInteractiveAuthentication no' \
+        'UsePAM yes' \
+        'PubkeyAuthentication yes' \
+        'AuthorizedKeysFile .ssh/authorized_keys' \
+        'X11Forwarding no' \
+        'PrintMotd no' \
+        'Subsystem sftp /usr/lib/openssh/sftp-server' \
+        >/etc/ssh/sshd_config
 
 WORKDIR /workspace
 

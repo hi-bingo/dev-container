@@ -14,6 +14,16 @@ fi
 
 mkdir -p "${HOME}/.codex" "${HOME}/.claude" "${HOME}/.cc-connect"
 
+if command -v ssh-keygen >/dev/null 2>&1; then
+  ssh-keygen -A >/dev/null 2>&1
+fi
+
+mkdir -p /run/sshd
+
+if command -v sshd >/dev/null 2>&1; then
+  /usr/sbin/sshd
+fi
+
 if [[ ! -f "${HOME}/.zshrc" ]]; then
   cp /usr/local/share/dev-container/zshrc "${HOME}/.zshrc"
 fi

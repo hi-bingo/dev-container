@@ -10,6 +10,8 @@ services:
       - .env
     environment:
       HOME: /root
+    ports:
+      - "2828:22"
     volumes:
       - ${WORKSPACE_DIR:-.}:/workspace
       - ${HOME}/.ssh:/root/.ssh:ro

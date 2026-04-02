@@ -54,10 +54,17 @@ cp .env.example .env
 
 ```bash
 docker compose pull
-docker compose run --rm dev
+docker compose run --rm --service-ports dev
 ```
 
 容器启动后默认工作目录是 `/workspace`，挂载自 `.env` 里的 `WORKSPACE_DIR`。
+
+如果只想把容器作为常驻开发环境运行，也可以：
+
+```bash
+docker compose up -d
+docker compose exec dev zsh
+```
 
 ## 宿主机目录复用
 
@@ -70,6 +77,20 @@ docker compose run --rm dev
 - `${HOME}/.cc-connect:/root/.cc-connect`
 
 其中 `ssh` 和 `gitconfig` 为只读，其余目录读写复用，便于在容器内延续宿主机上的登录状态、配置和运行数据。
+
+## SSH 访问
+
+镜像内已启用 `sshd`，Compose 默认把宿主机 `2828` 映射到容器 `22`：
+
+- `2828:22`
+
+容器仅允许基于公钥的 `root` 登录，不启用密码登录，并复用宿主机挂载进容器的 `~/.ssh`。确保宿主机的 `~/.ssh/authorized_keys` 已包含你要使用的公钥后，可以这样连接：
+
+```bash
+ssh -p 2828 root@localhost
+```
+
+如果使用 `docker compose run`，要带上 `--service-ports`，否则不会发布 `2828` 端口。
 
 ## Codex / Claude / cc-connect
 
