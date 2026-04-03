@@ -72,6 +72,8 @@ RUN apt-get update \
         zsh \
     && rm -rf /var/lib/apt/lists/*
 
+RUN usermod --shell /usr/bin/zsh root
+
 RUN ln -sf /usr/bin/fdfind /usr/local/bin/fd \
     && ln -sf /usr/bin/pip3 /usr/local/bin/pip
 

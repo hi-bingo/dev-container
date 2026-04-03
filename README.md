@@ -59,6 +59,8 @@ docker compose run --rm --service-ports dev
 
 容器启动后默认工作目录是 `/workspace`，挂载自 `.env` 里的 `WORKSPACE_DIR`。
 
+镜像默认将 `root` 的登录 shell 设为 `zsh`；通过 `ssh` 登录容器时会直接进入 `zsh`。
+
 如果只想把容器作为常驻开发环境运行，也可以：
 
 ```bash
