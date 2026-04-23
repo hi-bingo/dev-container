@@ -79,17 +79,17 @@ docker compose exec dev zsh
 
 ## SSH 访问
 
-镜像内已启用 `sshd`，Compose 默认把宿主机 `2828` 映射到容器 `22`：
+镜像内已启用 `sshd`，Compose 默认把宿主机 `8022` 映射到容器 `22`：
 
-- `2828:22`
+- `8022:22`
 
 容器仅允许基于公钥的 `root` 登录，不启用密码登录，并复用宿主机挂载进容器的 `~/.ssh`。确保宿主机的 `~/.ssh/authorized_keys` 已包含你要使用的公钥后，可以这样连接：
 
 ```bash
-ssh -p 2828 root@localhost
+ssh -p 8022 root@localhost
 ```
 
-如果使用 `docker compose run`，要带上 `--service-ports`，否则不会发布 `2828` 端口。
+如果使用 `docker compose run`，要带上 `--service-ports`，否则不会发布 `8022` 端口。
 
 ## Codex / Claude
 
@@ -100,16 +100,9 @@ ssh -p 2828 root@localhost
 `.env.example` 里保留了常用变量：
 
 ```env
-DEV_CONTAINER_IMAGE=ghcr.io/your-github-username/dev-container:latest
+DEV_CONTAINER_IMAGE=ghcr.io/imbingox/dev-container:latest
 WORKSPACE_DIR=.
 
-OPENAI_API_KEY=
-CODEX_OPENAI_BASE_URL=
-CODEX_MODEL=
-
-ANTHROPIC_BASE_URL=
-ANTHROPIC_API_KEY=
-ANTHROPIC_AUTH_TOKEN=
 ```
 
 ## GitHub Actions 发布到 GHCR

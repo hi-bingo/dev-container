@@ -1,6 +1,6 @@
 services:
   dev:
-    image: ghcr.io/hi-bingo/dev-container:latest
+    image: ${DEV_CONTAINER_IMAGE:-ghcr.io/imbingox/dev-container:latest}
     pull_policy: always
     stdin_open: true
     tty: true
@@ -8,10 +8,11 @@ services:
     working_dir: /workspace
     ports:
       - "8022:22"
-      - “8000-8020:8000-8020”
+      - "8000-8020:8000-8020"
     volumes:
       - ./workspace:/workspace
       - ${HOME}/.ssh:/root/.ssh:ro
       - ${HOME}/.gitconfig:/root/.gitconfig:ro
+      - ${HOME}/.config/gh:/root/.config/gh:ro
       - ${HOME}/.codex:/root/.codex
       - ${HOME}/.claude:/root/.claude
