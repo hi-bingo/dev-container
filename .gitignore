@@ -3,8 +3,6 @@
 .env.local
 .idea/
 .vscode/
-.cc-connect/
-config.toml
 dist/
 node_modules/
 coverage/

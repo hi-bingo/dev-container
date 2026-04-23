@@ -1,21 +1,17 @@
 services:
   dev:
-    image: ${DEV_CONTAINER_IMAGE:-ghcr.io/hi-bingo/dev-container:latest}
+    image: ghcr.io/hi-bingo/dev-container:latest
     pull_policy: always
     stdin_open: true
     tty: true
     user: root
     working_dir: /workspace
-    env_file:
-      - .env
-    environment:
-      HOME: /root
     ports:
-      - "2828:22"
+      - "8022:22"
+      - “8000-8020:8000-8020”
     volumes:
-      - ${WORKSPACE_DIR:-.}:/workspace
+      - ./workspace:/workspace
       - ${HOME}/.ssh:/root/.ssh:ro
       - ${HOME}/.gitconfig:/root/.gitconfig:ro
       - ${HOME}/.codex:/root/.codex
       - ${HOME}/.claude:/root/.claude
-      - ${HOME}/.cc-connect:/root/.cc-connect
