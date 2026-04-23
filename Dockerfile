@@ -45,6 +45,7 @@ RUN apt-get update \
         less \
         nano \
         net-tools \
+        ncurses-bin \
         openssh-server \
         openssh-client \
         pkg-config \
@@ -113,8 +114,10 @@ RUN mkdir -p /workspace /root/.npm-global /root/.claude /root/.codex /root/.loca
 
 COPY scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 COPY scripts/zshrc /usr/local/share/dev-container/zshrc
+COPY terminfo/xterm-ghostty.terminfo /usr/local/share/dev-container/terminfo/xterm-ghostty.terminfo
 
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
+    && tic -x -o /usr/share/terminfo /usr/local/share/dev-container/terminfo/xterm-ghostty.terminfo \
     && mkdir -p /run/sshd \
     && printf '%s\n' \
         'Port 22' \
@@ -156,7 +159,8 @@ RUN node --version \
     && tsc --version \
     && tsx --version \
     && codex --version \
-    && claude --version
+    && claude --version \
+    && infocmp xterm-ghostty >/dev/null
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/docker-entrypoint.sh"]
 CMD ["zsh"]

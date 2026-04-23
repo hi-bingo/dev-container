@@ -20,8 +20,11 @@ colors
 
 PROMPT='%F{cyan}%n@%m%f:%F{yellow}%~%f %# '
 
-alias tn='tmux new-session -A -s'
 alias tls='tmux ls'
-alias ta='tmux attach -t'
-alias tk='tmux kill-session -t'
+alias tkill='tmux kill-session -t'
 alias td='tmux detach'
+
+tao() {
+  local name="${1:-main}"
+  tmux attach -t "${name}" || tmux new -s "${name}"
+}

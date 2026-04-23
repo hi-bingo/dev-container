@@ -91,6 +91,10 @@ ssh -p 8022 root@localhost
 
 如果使用 `docker compose run`，要带上 `--service-ports`，否则不会发布 `8022` 端口。
 
+### Ghostty
+
+镜像内已预装 `xterm-ghostty` terminfo。使用 Ghostty 通过 SSH 进入容器时，可以保留默认的 `TERM=xterm-ghostty`，`reset`、`tmux`、删除键和方向键等终端行为应能正常工作。
+
 ## Codex / Claude
 
 - `codex` 和 `claude` 已预装在镜像中
