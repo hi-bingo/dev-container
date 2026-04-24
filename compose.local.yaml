@@ -1,0 +1,7 @@
+services:
+  dev:
+    image: ${DEV_CONTAINER_LOCAL_IMAGE:-dev-container:local}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    pull_policy: never

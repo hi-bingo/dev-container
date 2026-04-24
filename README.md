@@ -24,40 +24,19 @@
 ├── .github/workflows/publish.yml
 ├── .env.example
 ├── compose.yaml
+├── compose.local.yaml
 ├── Dockerfile
 └── scripts/
 ```
 
-## 本地构建
+## 远程镜像运行
 
-```bash
-docker build -t dev-container:local .
-```
-
-也可以直接让 Compose 使用本地构建：
-
-```bash
-docker compose build
-```
-
-## 本地运行
-
-先准备环境变量：
-
-```bash
-cp .env.example .env
-```
-
-然后启动交互式开发环境：
+默认的 [compose.yaml](./compose.yaml) 面向“远程机器直接拉取 GHCR 镜像运行”这个场景：
 
 ```bash
 docker compose pull
 docker compose run --rm --service-ports dev
 ```
-
-容器启动后默认工作目录是 `/workspace`，挂载自 `.env` 里的 `WORKSPACE_DIR`。
-
-镜像默认将 `root` 的登录 shell 设为 `zsh`；通过 `ssh` 登录容器时会直接进入 `zsh`。
 
 如果只想把容器作为常驻开发环境运行，也可以：
 
@@ -66,12 +45,49 @@ docker compose up -d
 docker compose exec dev zsh
 ```
 
+`compose.yaml` 会始终优先拉取 `${DEV_CONTAINER_IMAGE}`，适合远程主机长期跟随最新镜像。
+
+## 本地构建
+
+```bash
+docker build -t dev-container:local .
+```
+
+如果要直接用 Compose 构建并运行本地 Dockerfile，叠加 [compose.local.yaml](./compose.local.yaml)：
+
+```bash
+docker compose -f compose.yaml -f compose.local.yaml build
+docker compose -f compose.yaml -f compose.local.yaml run --rm --service-ports dev
+```
+
+本地常驻运行同理：
+
+```bash
+docker compose -f compose.yaml -f compose.local.yaml up -d --build
+docker compose -f compose.yaml -f compose.local.yaml exec dev zsh
+```
+
+`compose.local.yaml` 会切换到本地 `build:`，并使用 `${DEV_CONTAINER_LOCAL_IMAGE}` 作为本地镜像名。
+
+## 环境变量
+
+先准备环境变量：
+
+```bash
+cp .env.example .env
+```
+
+容器启动后默认工作目录是 `/workspace`，并把 `.env` 里的 `WORKSPACE_DIR` 挂载到这里。
+
+镜像默认将 `root` 的登录 shell 设为 `zsh`；通过 `ssh` 登录容器时会直接进入 `zsh`。
+
 ## 宿主机目录复用
 
 `compose.yaml` 已经配置了以下挂载：
 
 - `${HOME}/.ssh:/root/.ssh:ro`
 - `${HOME}/.gitconfig:/root/.gitconfig:ro`
+- `${HOME}/.config/gh:/root/.config/gh:ro`
 - `${HOME}/.codex:/root/.codex`
 - `${HOME}/.claude:/root/.claude`
 
@@ -105,7 +121,8 @@ ssh -p 8022 root@localhost
 
 ```env
 DEV_CONTAINER_IMAGE=ghcr.io/imbingox/dev-container:latest
-WORKSPACE_DIR=.
+WORKSPACE_DIR=./workspace
+DEV_CONTAINER_LOCAL_IMAGE=dev-container:local
 
 ```
 
@@ -130,4 +147,5 @@ WORKSPACE_DIR=.
 
 - 把仓库名保持为 `dev-container`，这样默认镜像地址和工作流配置更直观
 - 如果只想拉 GHCR 上的镜像，执行 `docker compose pull`
-- 如果想验证 Dockerfile 改动，执行 `docker compose build`
+- 如果主要在远程机器上用，直接使用默认的 `compose.yaml`
+- 如果想验证 Dockerfile 改动，执行 `docker compose -f compose.yaml -f compose.local.yaml build`
