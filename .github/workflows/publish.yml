@@ -7,7 +7,25 @@ name: build-and-publish
       - master
     tags:
       - "v*"
+    paths:
+      - ".github/workflows/publish.yml"
+      - "Dockerfile"
+      - ".dockerignore"
+      - "scripts/**"
+      - "terminfo/**"
+      - "compose.yaml"
+      - "compose.local.yaml"
+      - ".env.example"
   pull_request:
+    paths:
+      - ".github/workflows/publish.yml"
+      - "Dockerfile"
+      - ".dockerignore"
+      - "scripts/**"
+      - "terminfo/**"
+      - "compose.yaml"
+      - "compose.local.yaml"
+      - ".env.example"
   workflow_dispatch:
 
 permissions:

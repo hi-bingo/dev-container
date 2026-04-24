@@ -69,6 +69,19 @@ docker compose -f compose.yaml -f compose.local.yaml exec dev zsh
 
 `compose.local.yaml` 会切换到本地 `build:`，并使用 `${DEV_CONTAINER_LOCAL_IMAGE}` 作为本地镜像名。
 
+不要对叠加了 `compose.local.yaml` 的配置执行 `docker compose pull`。Docker Compose 会尝试为带 `build:` 的服务拉取镜像，这时本地标签通常并不存在于远端仓库，可能出现 `manifest unknown`。本地场景请使用：
+
+```bash
+docker compose -f compose.yaml -f compose.local.yaml build
+docker compose -f compose.yaml -f compose.local.yaml up -d --build
+```
+
+如果只是想在叠加本地配置时跳过这些可构建服务的拉取，可以使用：
+
+```bash
+docker compose -f compose.yaml -f compose.local.yaml pull --ignore-buildable
+```
+
 ## 环境变量
 
 先准备环境变量：

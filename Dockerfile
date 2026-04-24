@@ -20,22 +20,29 @@ LABEL org.opencontainers.image.created="${IMAGE_CREATED}" \
       org.opencontainers.image.description="${IMAGE_DESCRIPTION}"
 
 ENV DEBIAN_FRONTEND=noninteractive \
+    HOME=/root \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    NPM_CONFIG_UPDATE_NOTIFIER=false
+    NPM_CONFIG_UPDATE_NOTIFIER=false \
+    DISABLE_AUTOUPDATER=1 \
+    PATH=/root/.local/bin:${PATH}
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        bash \
-        bash-completion \
+RUN set -eux; \
+    arch="${TARGETARCH:-$(dpkg --print-architecture)}"; \
+    case "${arch}" in \
+        amd64) node_arch="x64"; bun_arch="x64" ;; \
+        arm64) node_arch="arm64"; bun_arch="aarch64" ;; \
+        *) echo "Unsupported TARGETARCH: ${arch}" >&2; exit 1 ;; \
+    esac; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
         bubblewrap \
         build-essential \
         ca-certificates \
         curl \
-        dnsutils \
         fd-find \
         git \
         git-lfs \
@@ -43,11 +50,9 @@ RUN apt-get update \
         iproute2 \
         jq \
         less \
-        nano \
-        net-tools \
         ncurses-bin \
-        openssh-server \
         openssh-client \
+        openssh-server \
         pkg-config \
         procps \
         python-is-python3 \
@@ -60,7 +65,6 @@ RUN apt-get update \
         rsync \
         shellcheck \
         sqlite3 \
-        sudo \
         tini \
         tmux \
         tree \
@@ -69,98 +73,73 @@ RUN apt-get update \
         wget \
         xz-utils \
         zip \
-        zsh \
-    && rm -rf /var/lib/apt/lists/*
+        zsh; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/archives /var/cache/apt/archives/partial; \
+    usermod --shell /usr/bin/zsh root; \
+    ln -sf /usr/bin/fdfind /usr/local/bin/fd; \
+    ln -sf /usr/bin/pip3 /usr/local/bin/pip; \
+    curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${node_arch}.tar.xz" -o /tmp/node.tar.xz; \
+    tar -xJf /tmp/node.tar.xz -C /usr/local --strip-components=1; \
+    rm -f /tmp/node.tar.xz; \
+    ln -sf /usr/local/bin/node /usr/local/bin/nodejs; \
+    corepack enable; \
+    curl -fsSL "https://github.com/oven-sh/bun/releases/download/bun-v${BUN_VERSION}/bun-linux-${bun_arch}.zip" -o /tmp/bun.zip; \
+    unzip -q /tmp/bun.zip -d /opt/bun; \
+    rm -f /tmp/bun.zip; \
+    ln -sf "/opt/bun/bun-linux-${bun_arch}/bun" /usr/local/bin/bun; \
+    ln -sf /usr/local/bin/bun /usr/local/bin/bunx; \
+    curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh; \
+    git lfs install --system; \
+    npm install -g typescript tsx "${CODEX_NPM_PACKAGE}" "${CLAUDE_NPM_PACKAGE}"; \
+    npm cache clean --force; \
+    rm -rf /root/.npm /root/.cache; \
+    mkdir -p /workspace /run/sshd "${HOME}/.claude" "${HOME}/.codex" "${HOME}/.local/bin"; \
+    node --version; \
+    npm --version; \
+    corepack --version; \
+    bun --version; \
+    python --version; \
+    pip --version; \
+    pipx --version; \
+    uv --version; \
+    tsc --version; \
+    tsx --version; \
+    codex --version; \
+    claude --version
 
-RUN usermod --shell /usr/bin/zsh root
-
-RUN ln -sf /usr/bin/fdfind /usr/local/bin/fd \
-    && ln -sf /usr/bin/pip3 /usr/local/bin/pip
-
-RUN arch="${TARGETARCH:-$(dpkg --print-architecture)}" \
-    && case "${arch}" in \
-        amd64) node_arch="x64" ;; \
-        arm64) node_arch="arm64" ;; \
-        *) echo "Unsupported TARGETARCH: ${arch}" >&2; exit 1 ;; \
-    esac \
-    && curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${node_arch}.tar.xz" -o /tmp/node.tar.xz \
-    && tar -xJf /tmp/node.tar.xz -C /usr/local --strip-components=1 \
-    && rm -f /tmp/node.tar.xz \
-    && ln -sf /usr/local/bin/node /usr/local/bin/nodejs \
-    && corepack enable
-
-RUN arch="${TARGETARCH:-$(dpkg --print-architecture)}" \
-    && case "${arch}" in \
-        amd64) bun_arch="x64" ;; \
-        arm64) bun_arch="aarch64" ;; \
-        *) echo "Unsupported TARGETARCH: ${arch}" >&2; exit 1 ;; \
-    esac \
-    && curl -fsSL "https://github.com/oven-sh/bun/releases/download/bun-v${BUN_VERSION}/bun-linux-${bun_arch}.zip" -o /tmp/bun.zip \
-    && unzip -q /tmp/bun.zip -d /opt/bun \
-    && rm -f /tmp/bun.zip \
-    && ln -sf "/opt/bun/bun-linux-${bun_arch}/bun" /usr/local/bin/bun \
-    && ln -sf /usr/local/bin/bun /usr/local/bin/bunx
-
-RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
-
-RUN git lfs install --system \
-    && npm install -g \
-        typescript \
-        tsx \
-        "${CODEX_NPM_PACKAGE}" \
-        "${CLAUDE_NPM_PACKAGE}"
-
-RUN mkdir -p /workspace /root/.npm-global /root/.claude /root/.codex /root/.local/bin
-
-COPY scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+COPY --chmod=755 scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 COPY scripts/zshrc /usr/local/share/dev-container/zshrc
 COPY terminfo/xterm-ghostty.terminfo /usr/local/share/dev-container/terminfo/xterm-ghostty.terminfo
 
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
-    && tic -x -o /usr/share/terminfo /usr/local/share/dev-container/terminfo/xterm-ghostty.terminfo \
-    && mkdir -p /run/sshd \
-    && printf '%s\n' \
-        'Port 22' \
-        'Protocol 2' \
-        'PermitRootLogin prohibit-password' \
-        'PasswordAuthentication no' \
-        'KbdInteractiveAuthentication no' \
-        'UsePAM yes' \
-        'PubkeyAuthentication yes' \
-        'AuthorizedKeysFile .ssh/authorized_keys' \
-        'X11Forwarding no' \
-        'PrintMotd no' \
-        'Subsystem sftp /usr/lib/openssh/sftp-server' \
-        >/etc/ssh/sshd_config
+RUN <<'EOF'
+set -eux
+tic -x -o /usr/share/terminfo /usr/local/share/dev-container/terminfo/xterm-ghostty.terminfo
+infocmp xterm-ghostty >/dev/null
+cat >/etc/ssh/sshd_config <<'CFG'
+Port 22
+Protocol 2
+PermitRootLogin prohibit-password
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+UsePAM yes
+PubkeyAuthentication yes
+AuthorizedKeysFile .ssh/authorized_keys
+X11Forwarding no
+PrintMotd no
+Subsystem sftp /usr/lib/openssh/sftp-server
+CFG
+cat >"${HOME}/.claude/settings.json" <<'CFG'
+{
+  "autoUpdatesChannel": "stable",
+  "env": {
+    "DISABLE_AUTOUPDATER": "1"
+  }
+}
+CFG
+EOF
 
 WORKDIR /workspace
-
-ENV HOME=/root \
-    NPM_CONFIG_PREFIX=/root/.npm-global \
-    PATH=/root/.local/bin:/root/.npm-global/bin:/usr/local/bin:${PATH} \
-    DISABLE_AUTOUPDATER=1
-
-RUN printf '%s\n' \
-        '{' \
-        '  "autoUpdatesChannel": "stable",' \
-        '  "env": {' \
-        '    "DISABLE_AUTOUPDATER": "1"' \
-        '  }' \
-        '}' >/root/.claude/settings.json
-
-RUN node --version \
-    && npm --version \
-    && corepack --version \
-    && bun --version \
-    && python --version \
-    && pip --version \
-    && pipx --version \
-    && uv --version \
-    && tsc --version \
-    && tsx --version \
-    && codex --version \
-    && claude --version \
-    && infocmp xterm-ghostty >/dev/null
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/docker-entrypoint.sh"]
 CMD ["zsh"]
