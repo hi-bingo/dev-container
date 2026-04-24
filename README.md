@@ -15,7 +15,7 @@
 - 复用宿主机的 `~/.ssh`、`~/.gitconfig`、`~/.codex`、`~/.claude`
 - 其中 `~/.ssh` 和 `~/.gitconfig` 只读挂载
 - GitHub Actions 自动构建镜像并推送到 GHCR
-- GHCR 只保留最新 3 个 image version
+- GHCR 只保留最新 10 个 image version
 
 ## 目录
 
@@ -154,7 +154,7 @@ DEV_CONTAINER_LOCAL_IMAGE=dev-container:local
 - 构建 `linux/amd64` 和 `linux/arm64`
 - 推送到 `ghcr.io/<owner>/<repo>`
 - 默认打上分支、tag、`sha-*` 和默认分支上的 `latest`
-- 构建完成后自动清理 GHCR，只保留最新 3 个 image version
+- 构建完成后自动清理 GHCR，只保留最新 10 个 image version
 
 ## 使用建议
 
