@@ -8,6 +8,9 @@
 - Node.js 22 / `corepack` / TypeScript / `tsx`
 - Bun
 - `git` / `git-lfs` / `ripgrep` / `fd` / `jq` / `tmux` / `tree` / `htop` / `sqlite3` / `vim` / `zsh`
+- `sudo` / `bash-completion` / `man-db` / `manpages`
+- `cmake` / `ninja-build` / `gdb` / `strace` / `lsof` / `patch` / `file`
+- `dnsutils` / `iputils-ping` / `net-tools` / `gnupg`
 
 ## 目标
 
@@ -93,6 +96,12 @@ cp .env.example .env
 容器启动后默认工作目录是 `/workspace`，并把 `.env` 里的 `WORKSPACE_DIR` 挂载到这里。
 
 镜像默认将 `root` 的登录 shell 设为 `zsh`；通过 `ssh` 登录容器时会直接进入 `zsh`。
+
+## Root / sudo
+
+容器默认以 `root` 用户运行，见 [compose.yaml](./compose.yaml)。因此大多数情况下可以直接执行系统级命令，不需要额外写 `sudo`。
+
+镜像内仍然保留了 `sudo`，主要是为了兼容一些现成脚本、安装说明和习惯性写法；即使执行了 `sudo <command>`，本质上也还是以 `root` 身份运行。
 
 ## 宿主机目录复用
 

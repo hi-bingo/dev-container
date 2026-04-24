@@ -39,22 +39,36 @@ RUN set -eux; \
     esac; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
+        bash-completion \
         bubblewrap \
         build-essential \
         ca-certificates \
+        cmake \
         curl \
+        dnsutils \
         fd-find \
+        file \
+        gdb \
         git \
         git-lfs \
+        gnupg \
         htop \
         iproute2 \
+        iputils-ping \
         jq \
         less \
+        lsof \
+        man-db \
+        manpages \
         ncurses-bin \
+        net-tools \
+        ninja-build \
         openssh-client \
         openssh-server \
+        patch \
         pkg-config \
         procps \
+        psmisc \
         python-is-python3 \
         python3 \
         python3-dev \
@@ -65,6 +79,8 @@ RUN set -eux; \
         rsync \
         shellcheck \
         sqlite3 \
+        strace \
+        sudo \
         tini \
         tmux \
         tree \
